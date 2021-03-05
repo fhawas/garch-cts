@@ -7,6 +7,9 @@ Created on Tue Feb 23 06:57:35 2021
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import minimize
+
+np.random.seed(100)
 
 def square_loss_arma_ons(x_tilde,x):
     return (x - x_tilde)**2
@@ -19,8 +22,15 @@ def sherman_morrison_inv(A,u,v):
     denominator = 1 + np.matmul(np.matmul(v.T,A),u)
     return A - (numerator/denominator)
 
-def projection_K(gamma):
+def projection_K(gamma,c,A):
     
+    def distance(x):
+        return np.matmul(np.matmul(gamma-x,A),gamma-x)
+    
+    bounds = ((-c,c),)*gamma.shape[0]
+    x0 = np.random.rand(gamma.shape[0]) * c
+    x = minimize(distance,x0,bounds = bounds)
+    return x
 
 def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
     T = data.shape[0]
@@ -31,7 +41,7 @@ def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
         x_data = data['Close'].iloc[t-(m+k):t].values
         x_tilde = np.matmul(x_data,gamma_matrix[t,:])
         observed_loss = loss(x_tilde,x_data.iloc[t])
-        observed_gradient = gradient(x_tilde,x,gamma_matrix[t,:])
+        observed_gradient = gradient(x_tilde,x_data.iloc[t],gamma_matrix[t,:])
         A_t = A_t + np.matmul(observed_gradient.reshape(-1,1),observed_gradient.reshape(-1,1).T)
         
         if t == m+k:
@@ -39,5 +49,6 @@ def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
         else:
             A_inv_t = sherman_morrison_inv(A_t,observed_gradient.reshape(-1,1),observed_gradient.reshape(-1,1))
         
-        gamma_matrix[t+1,:] = projection_K(gamma_matrix[t,:].reshape(-1,1) - (1/eta)*np.matmul(A_inv_t,observed_gradient.reshape(-1,1)))
-        
+        un_projected_gamma = (gamma_matrix[t,:].reshape(-1,1) - (1/eta)*np.matmul(A_inv_t,observed_gradient.reshape(-1,1))).flatten()
+        gamma_matrix[t+1,:] = projection_K(un_projected_gamma)
+    return gamma_matrix
