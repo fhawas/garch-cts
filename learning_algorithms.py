@@ -47,10 +47,10 @@ def Phi_t(t,k,q,p,y,v_t_1):
     n = k + q
     Phi_mat = np.zeros((n,p))
     j = p-1
-    for i in range(t-p,t+1):
-        y_part = np.flip(y[np.maximum(i-k,0):i])
-        y_part = (-1)*np.concatenate((y_part,np.zeros(k-y_part.shape[0])))
-        v_part = np.flip(v_t_1[np.maximum(i-q,0):i])
+    for i in range(t-p+1,t+1):
+        y_part = np.flip(y[np.maximum(i-k,0):np.maximum(i,0)])
+        y_part = (-1)*np.concatenate((y_part,np.zeros(np.maximum(k-y_part.shape[0],0))))
+        v_part = np.flip(v_t_1[np.maximum(i-q,0):np.maximum(i,0)])
         v_part = np.concatenate((v_part,np.zeros(q-v_part.shape[0])))
         
         Phi_mat[:,j] = np.concatenate((y_part,v_part))
@@ -64,25 +64,25 @@ def arma_ls(k,q,p,data):
     p: selected length for iterative estimation
     
     """
-    v_t_1 = np.zeros(1)
+    v_t_1 = np.zeros(data.shape[0])
     v_t_1[0] = data[0]
     theta = np.zeros((data.shape[0],k+q))
-
     theta[0,:] = (0.000001) * np.ones(k+q)
 
     for t in range(1,data.shape[0]):
-        y = data[0:(t+1)]
-        Y = np.flip(y[np.maximum(t+1-p,0):(t+1)])
+        Y = np.flip(data[np.maximum(t+1-p,0):(t+1)])
         Y = np.concatenate((Y,np.zeros(np.maximum(p-Y.shape[0],0))))
-        Phi_t_mat = Phi_t(t,k,q,p,y,v_t_1)
+        Phi_t_mat = Phi_t(t,k,q,p,data,v_t_1)
         
         if t >= p:
             theta[t,:] = np.matmul(np.linalg.inv(np.matmul(Phi_t_mat,Phi_t_mat.T)),np.matmul(Phi_t_mat,Y))
         else:
-            theta[t,:] = (0.000001) * np.ones(k+q)
-            
-        v_t = y[t] - np.matmul(Phi_t_mat[:,0],theta[t,:])
-        v_t_1 = np.concatenate((v_t_1,v_t))
+            theta[t,:] = (1/4) * np.ones(k+q)
+
+        Phi_t_mat_sample = Phi_t(t,k,q,t+1,data,v_t_1)
+        Y_sample = np.flip(data[0:(t+1)])
+        aux = Y_sample - np.matmul(Phi_t_mat_sample.T,theta[t,:])
+        v_t_1[0:(t+1)] = np.flip(aux)
     return [v_t_1, theta]
 
 def arma_rls(k,q,p,data):
@@ -92,23 +92,24 @@ def arma_rls(k,q,p,data):
     p: selected length for iterative estimation
     
     """
-    v_t_1 = np.zeros(1)
+    v_t_1 = np.zeros(data.shape[0])
     v_t_1[0] = data[0]
     theta = np.zeros((data.shape[0],k+q))
     theta[0,:] = (0.000001) * np.ones(k+q)
     P_t_inv = (0.000001)*np.eye(k+q)
 
     for t in range(1,data.shape[0]):
-        y = data[0:(t+1)]
-        Y = np.flip(y[np.maximum(t+1-p,0):(t+1)])
+        Y = np.flip(data[np.maximum(t+1-p,0):(t+1)])
         Y = np.concatenate((Y,np.zeros(np.maximum(p-Y.shape[0],0))))
-        Phi_t_mat = Phi_t(t,k,q,p,y,v_t_1)
+        Phi_t_mat = Phi_t(t,k,q,p,data,v_t_1)
         
         theta[t,:] = theta[t-1,:] + np.matmul(np.matmul(P_t_inv,Phi_t_mat),Y - np.matmul(Phi_t_mat.T,theta[t-1,:]))
         P_t_inv = P_t_inv + np.matmul(Phi_t_mat,Phi_t_mat.T)
-            
-        v_t = y[t] - np.matmul(Phi_t_mat[:,0],theta[t,:])
-        v_t_1 = np.concatenate((v_t_1,v_t))
+
+        Phi_t_mat_sample = Phi_t(t,k,q,t+1,data,v_t_1)
+        Y_sample = np.flip(data[0:(t+1)])
+        aux = Y_sample - np.matmul(Phi_t_mat_sample.T,theta[t,:])
+        v_t_1[0:(t+1)] = np.flip(aux)
     return [v_t_1, theta]
 
     
@@ -119,19 +120,23 @@ def arma_rsg(k,q,p,data):
     q: MA order
     p: data length
     """
-    v_t_1 = np.zeros(1)
+    v_t_1 = np.zeros(data.shape[0])
     v_t_1[0] = data[0]
     theta = np.zeros((data.shape[0],k+q))
+    theta[0,:] = (0.000001) * np.ones(k+q)
     r = np.ones(data.shape[0])
     for t in range(1,data.shape[0]):
-        y = data[0:(t+1)]
-        Y = np.flip(y[np.maximum(t+1-p,0):(t+1)])
+        Y = np.flip(data[np.maximum(t+1-p,0):(t+1)])
         Y = np.concatenate((Y,np.zeros(np.maximum(p-Y.shape[0],0))))
-        Phi_t_mat = Phi_t(t,k,q,p,y,v_t_1)
+        Phi_t_mat = Phi_t(t,k,q,p,data,v_t_1)
+        
         r[t] = r[t-1] + np.trace(np.matmul(Phi_t_mat,Phi_t_mat.T))
-        theta[t,:] = theta[t-1,:] + (1/r[t]) * np.matmul(Phi_t_mat, Y - np.matmul(Phi_t_mat,theta[t-1,:]))
-        v_t = y[t] - np.matmul(Phi_t_mat[:,0],theta[t,:])
-        v_t_1 = np.concatenate((v_t_1,v_t))
+        theta[t,:] = theta[t-1,:] + (1/r[t]) * np.matmul(Phi_t_mat, Y - np.matmul(Phi_t_mat.T,theta[t-1,:]))
+        
+        Phi_t_mat_sample = Phi_t(t,k,q,t+1,data,v_t_1)
+        Y_sample = np.flip(data[0:(t+1)])
+        aux = Y_sample - np.matmul(Phi_t_mat_sample.T,theta[t,:])
+        v_t_1[0:(t+1)] = np.flip(aux)
     return [v_t_1, theta]
 
 def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
