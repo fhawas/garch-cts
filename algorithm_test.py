@@ -50,27 +50,31 @@ n_samples = 10000
     
     
 #Example 4
-v_t_ex4 = np.random.normal(0,1,n_samples)
-data_ex4 = np.zeros(n_samples)
-data_ex4[0] = 2
-for i in range(1,data_ex4.shape[0]):
-    data_ex4[i] = 0.9*data_ex4[i-1] + v_t_ex4[i]
-
-k = 1
-q = 0
-p = 4
-data = data_ex4
-[v_t_1_ex2_ls, theta_ex2_ls] = la.arma_ls(k,q,p,data)
-[v_t_1_ex2_rls, theta_ex2_rls] = la.arma_rls(k,q,p,data)
-[v_t_1_ex2_rsg, theta_ex2_rsg] = la.arma_rsg(k,q,p,data)
-#Example 5
-#v_t_ex5 = np.random.normal(0,1,n_samples)
-#data_ex5 = np.zeros(n_samples)
-#data_ex5[0] = 2
-#for i in range(1,data_ex5.shape[0]):
-#    data_ex5[i] = 0.9*data_ex5[i-1] + v_t_ex5[i] + .6*v_t_ex5[i-1]
+#v_t_ex4 = np.random.normal(0,1,n_samples)
+#data_ex4 = np.zeros(n_samples)
+#data_ex4[0] = 2
+#for i in range(1,data_ex4.shape[0]):
+#    data_ex4[i] = 0.9*data_ex4[i-1] + v_t_ex4[i]
 #
 #k = 1
-#q = 1
+#q = 0
 #p = 4
-#data = data_ex5
+#data = data_ex4
+#[v_t_1_ex4_ls, theta_ex4_ls] = la.arma_ls(k,q,p,data)
+#[v_t_1_ex4_rls, theta_ex4_rls] = la.arma_rls(k,q,p,data)
+#[v_t_1_ex4_rsg, theta_ex4_rsg] = la.arma_rsg(k,q,p,data)
+
+#Example 5
+v_t_ex5 = np.random.normal(0,1,n_samples)
+data_ex5 = np.zeros(n_samples)
+data_ex5[0] = 2
+for i in range(1,data_ex5.shape[0]):
+    data_ex5[i] = 0.9*data_ex5[i-1] + v_t_ex5[i] + .6*v_t_ex5[i-1]
+
+k = 1
+q = 1
+p = 10
+data = data_ex5
+[v_t_1_ex5_ls, theta_ex5_ls] = la.arma_ls(k,q,p,data)
+[v_t_1_ex5_rls, theta_ex5_rls] = la.arma_rls(k,q,p,data)
+[v_t_1_ex5_rsg, theta_ex5_rsg] = la.arma_rsg(k,q,p,data)

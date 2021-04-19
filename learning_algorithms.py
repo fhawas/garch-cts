@@ -65,11 +65,11 @@ def arma_ls(k,q,p,data):
     
     """
     v_t_1 = np.zeros(data.shape[0])
-    v_t_1[0] = data[0]
+    #v_t_1[0] = data[0]
     theta = np.zeros((data.shape[0],k+q))
-    theta[0,:] = (0.000001) * np.ones(k+q)
+    theta[0,:] = (1/4) * np.ones(k+q)
 
-    for t in range(1,data.shape[0]):
+    for t in range(1,10):#data.shape[0]):
         Y = np.flip(data[np.maximum(t+1-p,0):(t+1)])
         Y = np.concatenate((Y,np.zeros(np.maximum(p-Y.shape[0],0))))
         Phi_t_mat = Phi_t(t,k,q,p,data,v_t_1)
@@ -96,15 +96,18 @@ def arma_rls(k,q,p,data):
     v_t_1[0] = data[0]
     theta = np.zeros((data.shape[0],k+q))
     theta[0,:] = (0.000001) * np.ones(k+q)
-    P_t_inv = (0.000001)*np.eye(k+q)
+    P_t = (1000000)*np.eye(k+q)
 
     for t in range(1,data.shape[0]):
         Y = np.flip(data[np.maximum(t+1-p,0):(t+1)])
         Y = np.concatenate((Y,np.zeros(np.maximum(p-Y.shape[0],0))))
         Phi_t_mat = Phi_t(t,k,q,p,data,v_t_1)
         
-        theta[t,:] = theta[t-1,:] + np.matmul(np.matmul(P_t_inv,Phi_t_mat),Y - np.matmul(Phi_t_mat.T,theta[t-1,:]))
-        P_t_inv = P_t_inv + np.matmul(Phi_t_mat,Phi_t_mat.T)
+        pre_mult = np.matmul(P_t,Phi_t_mat)
+        inverse = np.linalg.inv(np.eye(p)+np.matmul(np.matmul(Phi_t_mat.T,P_t),Phi_t_mat))
+        post_mult = np.matmul(Phi_t_mat.T,P_t)
+        P_t = P_t - np.matmul(np.matmul(pre_mult,inverse),post_mult)
+        theta[t,:] = theta[t-1,:] + np.matmul(np.matmul(P_t,Phi_t_mat),Y - np.matmul(Phi_t_mat.T,theta[t-1,:]))
 
         Phi_t_mat_sample = Phi_t(t,k,q,t+1,data,v_t_1)
         Y_sample = np.flip(data[0:(t+1)])
