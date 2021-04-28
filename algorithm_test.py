@@ -50,25 +50,25 @@ n_samples = 10000
     
     
 #Example 4
-#v_t_ex4 = np.random.normal(0,1,n_samples)
-#data_ex4 = np.zeros(n_samples)
-#data_ex4[0] = 2
-#for i in range(1,data_ex4.shape[0]):
-#    data_ex4[i] = 0.9*data_ex4[i-1] + v_t_ex4[i]
-#
-#k = 1
-#q = 0
+v_t_ex4 = np.random.normal(0,1,n_samples)
+data_ex4 = np.zeros(n_samples)
+data_ex4[0] = 2
+for i in range(1,data_ex4.shape[0]):
+    data_ex4[i] = 0.9*data_ex4[i-1] + v_t_ex4[i]
+
+k = 1
+q = 0
 #p = 4
 c = 1
 M_max = 4
 epsilon = .1
 eta = .2
 L = 4
-#data = data_ex4
+data = data_ex4
 #[v_t_1_ex4_ls, theta_ex4_ls] = la.arma_ls(k,q,p,data)
 #[v_t_1_ex4_rls, theta_ex4_rls] = la.arma_rls(k,q,p,data)
 #[v_t_1_ex4_rsg, theta_ex4_rsg] = la.arma_rsg(k,q,p,data)
-theta_ex4_ons = la.arma_ons(k, q, eta, L, c, M_max, epsilon, square_loss_arma_ons, squared_loss_gradient_arma_ons, data)
+theta_ex4_ons = la.arma_ons(k, q, eta, L, c, M_max, epsilon, la.square_loss_arma_ons, la.squared_loss_gradient_arma_ons, data)
 
 #Example 5
 #v_t_ex5 = np.random.normal(0,1,n_samples)

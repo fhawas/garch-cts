@@ -142,9 +142,9 @@ def arma_rsg(k,q,p,data):
         v_t_1[0:(t+1)] = np.flip(aux)
     return [v_t_1, theta]
 
-def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
+def arma_ons(k, q, eta, L, c, M_max, epsilon, loss, gradient, data):
     """
-    inputs
+    input
     k: AR order
     q: MA order
     eta:
@@ -173,5 +173,5 @@ def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
             A_inv_t = sherman_morrison_inv(A_t,observed_gradient.reshape(-1,1),observed_gradient.reshape(-1,1))
         
         un_projected_gamma = (gamma_matrix[t,:].reshape(-1,1) - (1/eta)*np.matmul(A_inv_t,observed_gradient.reshape(-1,1))).flatten()
-        gamma_matrix[t+1,:] = projection_K(un_projected_gamma)
+        gamma_matrix[t+1,:] = projection_K(un_projected_gamma,c,A_t)
     return gamma_matrix
