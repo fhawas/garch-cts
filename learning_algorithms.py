@@ -157,13 +157,14 @@ def arma_ons(k, q, eta, L, M_max, epsilon, loss, gradient, data):
     """
     T = data.shape[0]
     m = q * (np.log(1/(T*L*M_max)) / np.log(1-epsilon))
+    m = int(m)
     A_t = np.random.rand(m+k , m+k)
     gamma_matrix = np.zeros((T,m + k))
     for t in range(m+k,T):
         x_data = data[t-(m+k):t]
         x_tilde = np.matmul(x_data,gamma_matrix[t,:])
-        observed_loss = loss(x_tilde,x_data[t])
-        observed_gradient = gradient(x_tilde,x_data[t],gamma_matrix[t,:])
+        observed_loss = loss(x_tilde,data[t])
+        observed_gradient = gradient(x_tilde,data[t],gamma_matrix[t,:])
         A_t = A_t + np.matmul(observed_gradient.reshape(-1,1),observed_gradient.reshape(-1,1).T)
         
         if t == m+k:
