@@ -30,7 +30,7 @@ def projection_K(gamma,c,A):
     bounds = ((-c,c),)*gamma.shape[0]
     x0 = np.random.rand(gamma.shape[0]) * c
     x = minimize(distance,x0,bounds = bounds)
-    return x
+    return x.x
 
 def Phi_t(t,k,q,p,y,v_t_1):
     """

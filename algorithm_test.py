@@ -59,7 +59,7 @@ for i in range(1,data_ex4.shape[0]):
 k = 1
 q = 0
 #p = 4
-c = 1
+c = 2
 M_max = 4
 epsilon = .1
 eta = .2
