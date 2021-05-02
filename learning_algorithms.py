@@ -158,7 +158,7 @@ def arma_ons(k, q, eta, L, c, M_max, epsilon, loss, gradient, data):
     T = data.shape[0]
     m = q * (np.log(1/(T*L*M_max)) / np.log(1-epsilon))
     m = int(m)
-    A_t = np.random.rand(m+k , m+k)
+    A_t = np.eye(m+k , m+k)
     gamma_matrix = np.ones((T+1,m + k))*(1/10)
     for t in range(m+k,T):
         x_data = data[t-(m+k):t]
@@ -170,7 +170,7 @@ def arma_ons(k, q, eta, L, c, M_max, epsilon, loss, gradient, data):
         if t == m+k:
             A_inv_t = np.linalg.inv(A_t)
         else:
-            A_inv_t = sherman_morrison_inv(A_t,observed_gradient.reshape(-1,1),observed_gradient.reshape(-1,1))
+            A_inv_t = sherman_morrison_inv(A_inv_t,observed_gradient.reshape(-1,1),observed_gradient.reshape(-1,1))
         
         un_projected_gamma = (gamma_matrix[t,:].reshape(-1,1) - (1/eta)*np.matmul(A_inv_t,observed_gradient.reshape(-1,1))).flatten()
         gamma_matrix[t+1,:] = projection_K(un_projected_gamma,c,A_t)
