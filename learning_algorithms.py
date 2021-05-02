@@ -159,7 +159,7 @@ def arma_ons(k, q, eta, L, c, M_max, epsilon, loss, gradient, data):
     m = q * (np.log(1/(T*L*M_max)) / np.log(1-epsilon))
     m = int(m)
     A_t = np.random.rand(m+k , m+k)
-    gamma_matrix = np.zeros((T+1,m + k))
+    gamma_matrix = np.ones((T+1,m + k))*(1/10)
     for t in range(m+k,T):
         x_data = data[t-(m+k):t]
         x_tilde = np.matmul(x_data,gamma_matrix[t,:])
